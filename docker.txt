@@ -1,0 +1,101 @@
+
+DOCKER
+
+Docker networking code: 1st PPT
+
+* docker build -t my-tomcat-app .   ( -t => tag )
+⇐ same as ⇒ 
+* docker build -t my-tomcat-app:latest .
+
+-> in the current directory there should be Dockerfile:
+* docker run -d --name login1 my-tomcat-app ( -d => detached mode )
+* docker run -d –name logout1 my-tomcat-app
+* docker inspect logout1 (check IP of logout1)
+* docker inspect login1 (check IP of login1)
+* docker exec -it login1 /bin/bash
+* docker exec -it logout1 /bin/bash
+
+-> common for both containers
+* apt-get update
+* apt-get install -y iputils-ping
+* ping <other container’s ip address>
+
+* docker network ls
+* docker network create custom-net-1
+* docker network ls
+* docker run -d –name payment1 --network custom-net-1 my-tomcat-app
+* docker exec -it payment1 /bin/bash
+* apt-get update
+* apt-get install -y iputils-ping
+* ping <other container’s ip address>
+
+=> Host network
+docker run -d --name hosttest –network host mytomcat 
+docker ps => to display running containers 
+-container id, name, port, status, created, cmd, image   ——  MySQL code:
+Docker pull mysql:version
+Docker run -d –name mysql-db -p or –publish 3306(host) 3316:3306(container) -e MYSQL_ROOT_PASSWORD=mypassword123 mysql
+Docker ps
+Docker exec -it mysql-db  /bin/bash 
+bash-4.4# mysql -u root -p
+Enter pwd: mypassword123
+mysql> select * from ..
+mysql> exit
+exit
+
+——
+
+MultiContainer App:  spring boot app -> ./mvnw package 
+Add Dockerfile:
+FROM openjdk:19
+ADD target/employee-test-0.0.1-SNAPSHOT.jar app.jar
+EXPOSE 8080
+ENTRYPOINT [“java”,”-jar”,”app.jar”]  => cannot be overridden with the help of docker run
+
+——
+
+docker-compose.yml
+
+services:
+  mysqldb:   # Service name
+    container_name: employee-db-container
+    image: mysql:8.3.0   # Pull MySQL 8.3.0 image
+    environment:
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: test
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - 3316:3306   # Host:Container (MySQL available on host port 3316)
+    volumes:
+      - ./mysql-data:/var/lib/mysql   # Persist MySQL data on host
+    networks:
+      - employee-app-mysql-network
+
+  springboot-employee-rest-api:   # Service name
+    container_name: employee-api-container
+    build:                        # Build image from Dockerfile
+      context: ./employee-test    # Location of source/Dockerfile
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080   # Map host 8080 → container 8080
+    depends_on:
+      - mysqldb       # Ensure MySQL starts before this service
+    environment:
+      spring.jpa.hibernate.ddl-auto: update
+      spring.datasource.url: jdbc:mysql://mysqldb:3306/test
+      spring.datasource.username: appuser
+      spring.datasource.password: password
+    networks:
+      - employee-app-mysql-network
+    restart: on-failure
+   
+networks:
+      - employee-app-mysql-network
+ —
+
+docker ps
+docker images
+docker-compose –version
+docker-compose up
+docker-compose down

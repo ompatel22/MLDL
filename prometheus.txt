@@ -1,0 +1,23 @@
+
+PROMETHEUS & GRAFANA
+
+Minikube Command:
+* minikube start --driver=docker
+Helm Commands (for repository and installation):
+* helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+* helm repo update
+* helm install monitoring prometheus-community/kube-prometheus-stack
+* kubectl get all
+* kubectl port-forward prometheus-monitoring-kube-prometheus-prometheus-0 9090
+
+Access prometheus ui by
+http://localhost:9090
+
+for grafana ui
+Credentials :
+username : admin
+password : pro-operator
+
+kubectl port-forward deployment/monitoring-grafana 3000 
+Now open the grafana ui by
+http://localhost:3000

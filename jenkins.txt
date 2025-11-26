@@ -1,0 +1,142 @@
+
+JENKINS 
+docker pull jenkins/jenkins
+ ->run Jenkins without volume
+docker run -p 8080:8080 -p 50000:50000 jenkins/jenkins
+
+->run Jenkins with volume
+docker run -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins
+
+->to get the admin password: docker exec -it MyJenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
+——
+
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Build') {
+            steps {
+                echo 'Building...'
+                // Add build steps here
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Testing...'
+                // Add test steps here
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying...'
+                // Add deploy steps here
+            }
+        }
+    }
+}
+
+——
+
+stage('Deploy') {
+    when {
+        branch 'master'
+    }
+    steps {
+        echo 'Deploying to production...'
+    }
+}
+
+___
+
+ stage('Parallel Stage') {
+    parallel {
+
+        stage('Unit Tests') {
+            steps {
+                echo 'Running unit tests...'
+            }
+        }
+
+        stage('Integration Tests') {
+            steps {
+                echo 'Running integration tests...'
+            }
+        }
+
+    }
+}
+
+—— EXP-2
+
+- npm init -y
+- npm i express
+- node ./index.js
+
+* git init
+* git add
+* git commit -m "first commit"
+* git branch -M main
+* git remote add origin https://github.com/mihirh19/dockerpipeline.git
+* git push u origin main
+
+——
+
+pipeline {
+    agent any
+
+    stages {
+        stage('checkout') {
+            steps {
+                checkout scmGit(
+                    branches: [[name: '*/main']],
+                    extensions: [],
+                    userRemoteConfigs: [[
+                        credentialsId: 'github',
+                        url: 'https://github.com/mihrh19/docker_jenkins_pipeline'
+                    ]]
+                )
+            }
+        }
+
+        stage("Build Image") {
+            steps {
+                script {
+                    if (isUnix()) {
+                        sh 'docker build -t mihr2109/dockerpipeline .'
+                    } else {
+                        bat 'docker build -t mihr2109/dockerpipeline .'
+                    }
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub',
+                        passwordVariable: 'DOCKERHUB_PASSWORD',
+                        usernameVariable: 'DOCKERHUB_USERNAME'
+                    )
+                ]) {
+                    script {
+                        if (isUnix()) {
+                            sh 'docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD'
+                            sh 'docker push mihr2109/dockerpipeline'
+                            sh 'docker logout'
+                        } else {
+                            bat 'docker login -u %DOCKERHUB_USERNAME% -p %DOCKERHUB_PASSWORD%'
+                            bat 'docker push mihr2109/dockerpipeline'
+                            bat 'docker logout'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+

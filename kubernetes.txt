@@ -1,0 +1,74 @@
+
+KUBERNETES  KUBERNETES EX-1
+* Initialize a Node.js Project : npm init -y
+* Install Express.js : npm install express
+* Create Application code : code app.js
+* Create the Dockerfile
+FROM node:21
+WORKDIR /usr/src/app
+COPY package*.json
+RUN  npm install
+COPY . .
+EXPOSE 3000
+CMD [“node”, “app.js”] 
+* docker build -t <tag-name> .
+* docker run -d –name <cnt-name> -p hostport:cntport <img-name>
+* docker stop <cnt-name>
+* docker login
+* docker tag <img-name> <dockerhub-username>/<img-name> – docker tag myapp barkha/myapp  [ this command renames local docker image so it can be uploaded to docker hub]
+* docker push <dockerhub-username>/<img-name> – docker push barkha/myapp
+
+* docker context use default - switch back to the local docker engine 
+* minikube start – initializes and starts your local kubernetes cluster.
+* minikube stop
+* kubectl cluster-info – prints cluster information
+* Kubectl config view
+* Kubectl run mypod –image=barkha/mypod –port
+* Kubectl get pod or Kubectl get pods
+* Kubectl get deployment or Kubectl get deployments
+* Kubectl get services 
+* OR Kubectl get service
+* Kubectl get services <s-name>
+* Kubectl get events
+* Kubectl get all - kubectl get all → shows only existing (active) resources,  not fully dead/deleted ones.
+* Kubectl delete pod <pod-name>
+* Kubectl delete deployment <d-name> ⇒ will automatically delete pod and replicaset
+* kubectl delete service <s-name>
+* kubectl run <pod-name> –image=<img-name> –port=<p-n>
+* Kubectl create deployment <d-name> –image=<img-name>:tag - here pod and replica set get auto created with name = <d-name>-id
+* Kubectl expose deployment <d-name> –type=NodePort –name=<s-name> –port=<p-n>
+* Kubectl edit deployment <d-name>
+* Kubectl logs <pod-name>
+* Kubectl describe pod <pod-name>
+* Kubectl exec -it <pod-name> – /bin/bash ⇒we will be in set WORKDIR using dockerfile
+* minikube service –url <s-name>
+
+_____  KUBERNETES EX-2 
+docker context use default 
+minikube start –driver=virtualbox (–no-vtx-check)
+minikube ssh → to login to the VM node of minikube, it will open a cmd prompt → ifconfig - to get info of virtual ethernet 
+minikube status → to check status of all the components like kubelet, apiserver..
+
+* kubectl apply -f namespace.yaml → create namespace 
+* kubectl get ns
+* kubectl  apply -f deployment.yaml → creates deployment
+* Kubectl get pods -n <namespace-name> -lists pods of a specific namespace
+* OR kubectl get pods –namespace <namespace-name>
+* minikube ssh 
+* Kubectl get services -n <namespace-name>
+* docker ps | grep “barkha”
+* kubectl apply -f service.yaml
+* minikube ip  ⇒ gives minikube IP === same as Ingress IP
+* minikube service <s–name> –url -n <namespace>
+* curl http://ip:port   INGRESS 
+* minikube addons enable ingress -> to add ingress addon
+* minikube addons list 
+
+* Kubectl apply -f <ingress-file>
+* Kubectl get ingress -n <namespace>
+* Kubectl describe ingress <ingress-name> -n <namespace>
+
+* Kubectl delete -f .
+* Kubectl apply -f .
+* minikube tunnel ⇒ gives your Ingress a real IP,  so you can access it from your local machine. —> use in both virtualbox and normal minikube before calling the ip of minikube means before calling ip of ingress  in power cell admin mode:
+—> notepad C:\Windows\System32\drivers\etc\hosts –-> make entry for: => 192.168.49.2(ingress-ip using kubectl get ingress -n ns) hello-world-nodeapp.local
